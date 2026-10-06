@@ -3269,6 +3269,8 @@ public:
     static bool clear();
     /// returns true if cache is enabled (successfully initialized)
     static bool enabled();
+    /// returns the cache directory (with a trailing path delimiter), empty if not enabled
+    static lString32 getCacheDir();
 };
 
 

@@ -114,4 +114,41 @@
 #define PROP_IMG_SCALING_ZOOMOUT_BLOCK_MODE "crengine.image.scaling.zoomout.block.mode"
 #define PROP_IMG_SCALING_ZOOMOUT_BLOCK_SCALE "crengine.image.scaling.zoomout.block.scale"
 
+// ----------------------------------------------------------------------
+// Font weight, slant type (italic style) and decoration weight, per font category
+// ----------------------------------------------------------------------
+
+#define PROP_FONT_ITALIC_STYLE       "font.italic.style.default"
+
+// Generic font families font weights
+#define PROP_GENERIC_SERIF_FONT_WEIGHT      "crengine.generic.serif.font.weight"
+#define PROP_GENERIC_SANS_SERIF_FONT_WEIGHT "crengine.generic.sans-serif.font.weight"
+#define PROP_GENERIC_CURSIVE_FONT_WEIGHT    "crengine.generic.cursive.font.weight"
+#define PROP_GENERIC_FANTASY_FONT_WEIGHT    "crengine.generic.fantasy.font.weight"
+#define PROP_GENERIC_MONOSPACE_FONT_WEIGHT  "crengine.generic.monospace.font.weight"
+#define PROP_GENERIC_EMOJI_FONT_WEIGHT      "crengine.generic.emoji.font.weight"
+#define PROP_GENERIC_FANGSONG_FONT_WEIGHT   "crengine.generic.fangsong.font.weight"
+#define PROP_GENERIC_MATH_FONT_WEIGHT       "crengine.generic.math.font.weight"
+
+// Generic font families font italic styles
+#define PROP_GENERIC_SERIF_FONT_ITALIC_STYLE      "crengine.generic.serif.font.italic.style"
+#define PROP_GENERIC_SANS_SERIF_FONT_ITALIC_STYLE "crengine.generic.sans-serif.font.italic.style"
+#define PROP_GENERIC_CURSIVE_FONT_ITALIC_STYLE    "crengine.generic.cursive.font.italic.style"
+#define PROP_GENERIC_FANTASY_FONT_ITALIC_STYLE    "crengine.generic.fantasy.font.italic.style"
+#define PROP_GENERIC_MONOSPACE_FONT_ITALIC_STYLE  "crengine.generic.monospace.font.italic.style"
+#define PROP_GENERIC_EMOJI_FONT_ITALIC_STYLE      "crengine.generic.emoji.font.italic.style"
+#define PROP_GENERIC_FANGSONG_FONT_ITALIC_STYLE   "crengine.generic.fangsong.font.italic.style"
+#define PROP_GENERIC_MATH_FONT_ITALIC_STYLE       "crengine.generic.math.font.italic.style"
+
+// Generic font families decoration weights
+#define PROP_FONT_DECORATION_WEIGHT                 "font.face.decoration.weight"
+#define PROP_GENERIC_SERIF_FONT_DECORATION_WEIGHT      "crengine.generic.serif.font.decoration.weight"
+#define PROP_GENERIC_SANS_SERIF_FONT_DECORATION_WEIGHT "crengine.generic.sans-serif.font.decoration.weight"
+#define PROP_GENERIC_CURSIVE_FONT_DECORATION_WEIGHT    "crengine.generic.cursive.font.decoration.weight"
+#define PROP_GENERIC_FANTASY_FONT_DECORATION_WEIGHT    "crengine.generic.fantasy.font.decoration.weight"
+#define PROP_GENERIC_MONOSPACE_FONT_DECORATION_WEIGHT  "crengine.generic.monospace.font.decoration.weight"
+#define PROP_GENERIC_EMOJI_FONT_DECORATION_WEIGHT      "crengine.generic.emoji.font.decoration.weight"
+#define PROP_GENERIC_FANGSONG_FONT_DECORATION_WEIGHT   "crengine.generic.fangsong.font.decoration.weight"
+#define PROP_GENERIC_MATH_FONT_DECORATION_WEIGHT       "crengine.generic.math.font.decoration.weight"
+
 #endif // LVDOCVIEWPROPS_H

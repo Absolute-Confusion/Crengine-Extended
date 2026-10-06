@@ -129,6 +129,7 @@ typedef struct
     lUInt32         color;    /**< \brief color */
     lUInt32         bgcolor;  /**< \brief background color */
     lUInt32         flags;    /**< \brief flags */
+    lUInt16         decoration_weight; /**< \brief decoration weight for underlines/strikethroughs */
     lUInt16         index;
     // move unions bottom to simplify debugging
     union {
@@ -402,8 +403,11 @@ class LFormattedText
     friend class LGrayDrawBuf;
 private:
     formatted_text_fragment_t * m_pbuffer;
+    lUInt16 m_current_decoration_weight;
 public:
     formatted_text_fragment_t * GetBuffer() { return m_pbuffer; }
+    void SetCurrentDecorationWeight(lUInt16 weight) { m_current_decoration_weight = weight; }
+    lUInt16 GetCurrentDecorationWeight() { return m_current_decoration_weight; }
 
     /// set strut height and baseline (line boxes starting minimal values)
     void setStrut(lUInt16 height, lUInt16 baseline) {
@@ -479,6 +483,8 @@ public:
             text, len, color, bgcolor,
             flags, interval, valign_dy, indent, object, (lUInt16)offset, letter_spacing,
             retained_font.isNull() ? NULL : new LVFontRef(retained_font) );
+        if (m_pbuffer->srctextlen > 0)
+            m_pbuffer->srctext[m_pbuffer->srctextlen - 1].decoration_weight = m_current_decoration_weight;
     }
 
     lUInt32 Format(lUInt16 width, lUInt16 page_height,
@@ -539,7 +545,7 @@ public:
     bool isReusable() { return m_pbuffer->is_reusable; }
     void requestLightFormatting() { m_pbuffer->light_formatting = true; }
 
-    LFormattedText() { m_pbuffer = lvtextAllocFormatter( 0 ); }
+    LFormattedText() : m_current_decoration_weight(100) { m_pbuffer = lvtextAllocFormatter( 0 ); }
 
     ~LFormattedText() { lvtextFreeFormatter( m_pbuffer ); }
 };

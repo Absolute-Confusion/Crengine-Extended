@@ -28,6 +28,13 @@
 
 #include <md4c-html.h>
 
+#if (USE_UTF8PROC==1)
+#include <utf8proc.h>
+#endif
+
+#include <map>
+#include <string>
+
 #define TEXT_PARSER_CHUNK_SIZE 16384
 
 bool DetectMarkdownFormat(LVStreamRef stream, const lString32& fileName) {
@@ -55,6 +62,128 @@ typedef struct cre_md4c_parse_data_tag
 static void my_md4c_process_output(const MD_CHAR* chunk, MD_SIZE sz, void* userData) {
     cre_md4c_parse_data* data = (cre_md4c_parse_data*)userData;
     data->htmlData->append(chunk, sz);
+}
+
+// Whether a heading id keeps this character: a letter, a combining mark, a decimal digit or a
+// connector (Unicode's "word" characters, as GitHub and GitLab keep)
+static bool isSlugChar(lChar32 ch) {
+#if (USE_UTF8PROC==1)
+    switch (utf8proc_category(ch)) {
+        case UTF8PROC_CATEGORY_LU:
+        case UTF8PROC_CATEGORY_LL:
+        case UTF8PROC_CATEGORY_LT:
+        case UTF8PROC_CATEGORY_LM:
+        case UTF8PROC_CATEGORY_LO:
+        case UTF8PROC_CATEGORY_MN:
+        case UTF8PROC_CATEGORY_MC:
+        case UTF8PROC_CATEGORY_ME:
+        case UTF8PROC_CATEGORY_ND:
+        case UTF8PROC_CATEGORY_PC:
+            return true;
+        default:
+            return false;
+    }
+#else
+    return (lGetCharProps(ch) & (CH_PROP_ALPHA | CH_PROP_DIGIT | CH_PROP_MODIFIER)) != 0;
+#endif
+}
+
+// The text of md4c's HTML: no tags, its escapes decoded
+static lString8 htmlText(const lString8& html) {
+    lString8 text;
+    for (int i = 0; i < html.length(); i++) {
+        char ch = html[i];
+        if (ch == '<') {
+            while (i < html.length() && html[i] != '>')
+                i++;
+            continue;
+        }
+        if (ch == '&') {
+            static const char* entities[] = { "&amp;", "&", "&lt;", "<", "&gt;", ">", "&quot;", "\"" };
+            bool decoded = false;
+            for (int e = 0; e < 8; e += 2) {
+                int len = (int)strlen(entities[e]);
+                if (html.substr(i, len) == entities[e]) {
+                    text << entities[e + 1];
+                    i += len - 1;
+                    decoded = true;
+                    break;
+                }
+            }
+            if (decoded)
+                continue;
+        }
+        text << ch;
+    }
+    return text;
+}
+
+// A heading's id from its HTML (md4c's), as GitHub and GitLab make it: the text lowercased,
+// keeping word characters and hyphens, each space a hyphen; written as md4c writes a link's
+// target (bytes other than ASCII as %XX), so that a link to it ([text](#id)) is the same string
+static lString8 headingSlug(const lString8& innerHtml) {
+    static const char hex[] = "0123456789ABCDEF";
+    lString32 s = Utf8ToUnicode(htmlText(innerHtml));
+    lString8 slug;
+    for (int i = 0; i < s.length(); i++) {
+        lChar32 ch = s[i];
+        if (ch == ' ') {
+            slug << '-';
+            continue;
+        }
+        if (ch != '-' && !isSlugChar(ch))
+            continue;
+        // Only an uppercase letter (without utf8proc, lStr_lowercase() would turn "ß" into "ÿ")
+        if (lGetCharProps(ch) & CH_PROP_UPPER)
+            lStr_lowercase(&ch, 1);
+        lString8 bytes = UnicodeToUtf8(lString32(&ch, 1));
+        for (int b = 0; b < bytes.length(); b++) {
+            unsigned char c = (unsigned char)bytes[b];
+            if (c < 128) {
+                slug << (char)c;
+            } else {
+                slug << '%' << hex[c >> 4] << hex[c & 15];
+            }
+        }
+    }
+    return slug;
+}
+
+// Gives md4c's headings (<h1>...<h6>, which have no id) their GitHub ids, so that links to
+// them work; a repeated id is numbered (-1, -2...), a heading with no word character gets none,
+// a heading written in HTML (with attributes) keeps its own
+static void addHeadingIds(lString8& html) {
+    lString8 out;
+    std::map<std::string, int> occurrences;
+    int pos = 0;
+    while (true) {
+        int start = html.pos("<h", pos);
+        if (start < 0 || start + 3 >= html.length())
+            break;
+        char level = html[start + 2];
+        if (level < '1' || level > '6' || html[start + 3] != '>') {
+            out.append(html.c_str() + pos, start + 2 - pos);
+            pos = start + 2;
+            continue;
+        }
+        int end = html.pos(lString8("</h") << level << '>', start + 4);
+        if (end < 0)
+            break;
+        lString8 base = headingSlug(html.substr(start + 4, end - start - 4));
+        out.append(html.c_str() + pos, start + 3 - pos);
+        if (!base.empty()) {
+            std::string slug = base.c_str();
+            while (occurrences.count(slug)) {
+                int n = ++occurrences[base.c_str()];
+                slug = std::string(base.c_str()) + "-" + std::to_string(n);
+            }
+            occurrences[slug] = 0;
+            out << " id=\"" << slug.c_str() << "\"";
+        }
+        pos = start + 3;
+    }
+    out.append(html.c_str() + pos, html.length() - pos);
+    html = out;
 }
 
 bool ImportMarkdownDocument(LVStreamRef stream, const lString32& fileName, ldomDocument* doc, LVDocViewCallback* progressCallback, CacheLoadingCallback* formatCallback) {
@@ -91,6 +220,7 @@ bool ImportMarkdownDocument(LVStreamRef stream, const lString32& fileName, ldomD
         CRLog::error("MD4C: Failed to parse Markdown document!");
         return res;
     }
+    addHeadingIds(htmlData);
     // Write document content to stream to parse them
     lvsize_t result_len = htmlData.length();
     lString32 title = LVExtractFilenameWithoutExtension(fileName);

@@ -297,6 +297,7 @@ void lvtextAddSourceLine( formatted_text_fragment_t * pbuffer,
     pline->color = color;
     pline->bgcolor = bgcolor;
     pline->letter_spacing = letter_spacing;
+    pline->decoration_weight = 100;
 }
 
 void lvtextAddSourceObject(
@@ -328,6 +329,7 @@ void lvtextAddSourceObject(
     pline->o.height = height;
     pline->object = object;
     pline->indent = indent;
+    pline->decoration_weight = 100;
     pline->interval = interval;
     pline->valign_dy = valign_dy;
     pline->letter_spacing = letter_spacing;
@@ -391,6 +393,8 @@ void LFormattedText::AddSourceObject(
     // (lvtextAddSourceObject will itself add to flags: | LTEXT_SRC_IS_OBJECT)
     lvtextAddSourceObject(m_pbuffer, 0, 0,
         flags, objflags, interval, valign_dy, indent, object, lang_cfg, letter_spacing );
+    if (m_pbuffer->srctextlen > 0)
+        m_pbuffer->srctext[m_pbuffer->srctextlen - 1].decoration_weight = m_current_decoration_weight;
 
     // Notes about the 3 cases:
     // if (objflags & LTEXT_OBJECT_IS_FLOAT):
@@ -6503,10 +6507,12 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
             }
 #endif
 
-            int text_decoration_back_gap;
-            lUInt16 lastWordSrcIndex;
+            lUInt16 lastWordSrcIndexForDecoration = 0xFFFF;
+            lUInt32 lastWordFlagsForDecoration = 0;
+            int lastWordEndX = 0;
             for (j=0; j<frmline->word_count; j++)
             {
+                int text_decoration_back_gap = 0;
                 word = &frmline->words[j];
                 srcline = &m_pbuffer->srctext[word->src_text_index];
                 if ( (srcline->flags & LTEXT_HAS_EXTRA) && getLTextExtraProperty(srcline, LTEXT_EXTRA_CSS_HIDDEN) && !buf->WantsHiddenContent() )
@@ -6610,9 +6616,13 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     // For now, we only ensure it if this word and previous one are in the
                     // same text node. We wrongly won't when one of these is in a sub <SPAN>
                     // because we can't detect that rightly at this point anymore...
-                    text_decoration_back_gap = 0;
-                    if (j > 0 && word->src_text_index == lastWordSrcIndex) {
-                        text_decoration_back_gap = word->x - lastWordEnd;
+                    lUInt32 drawFlags = srcline->flags & LTEXT_TD_MASK;
+                    drawFlags |= (srcline->decoration_weight & 0x1FF) << 16;
+
+                    if (j > 0 && (srcline->flags & LTEXT_TD_MASK) != 0 && drawFlags == lastWordFlagsForDecoration) {
+                        if (word->src_text_index == lastWordSrcIndexForDecoration) {
+                            text_decoration_back_gap = word->x - lastWordEndX;
+                        }
                     }
                     lUInt32 oldColor = buf->GetTextColor();
                     lUInt32 oldBgColor = buf->GetBackgroundColor();
@@ -6629,9 +6639,7 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     }
                     if ( !LTEXT_COLOR_IS_RESERVED(bgcl) )
                         buf->SetBackgroundColor( bgcl );
-                    // Add drawing flags: text decoration (underline...)
-                    lUInt32 drawFlags = srcline->flags & LTEXT_TD_MASK;
-                    // and chars direction, and if word begins or ends paragraph (for Harfbuzz)
+                    // add chars direction, and if word begins or ends paragraph (for Harfbuzz)
                     drawFlags |= WORD_FLAGS_TO_FNT_FLAGS(word->flags);
                     // For debugging, to visually see overlap/italic correction:
                     // if (word->flags & LTEXT_WORD__AVAILABLE_BIT_16__ ) drawFlags |= LTEXT_TD_OVERLINE;
@@ -6714,7 +6722,11 @@ void LFormattedText::Draw( LVDrawBuf * buf, int x, int y, ldomMarkedRangeList * 
                     if ( !LTEXT_COLOR_IS_RESERVED(bgcl) )
                         buf->SetBackgroundColor( oldBgColor );
                 }
-                lastWordSrcIndex = word->src_text_index;
+                lastWordSrcIndexForDecoration = word->src_text_index;
+                lastWordFlagsForDecoration = srcline->flags & LTEXT_TD_MASK;
+                lastWordFlagsForDecoration |= (srcline->decoration_weight & 0x1FF) << 16;
+                lastWordEndX = word->x + word->width;
+
                 lastWordEnd = word->x + word->width;
             }
 

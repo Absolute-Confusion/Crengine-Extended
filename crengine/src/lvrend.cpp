@@ -2395,6 +2395,195 @@ int LVRendGetBaseFontWeight()
     return rend_font_base_weight;
 }
 
+static int rend_font_base_decoration_weight = 100;
+
+void LVRendSetBaseDecorationWeight( int weight )
+{
+    if ( weight < 50 )
+        weight = 50;
+    else if ( weight > 500 )
+        weight = 500;
+    rend_font_base_decoration_weight = weight;
+}
+
+int LVRendGetBaseDecorationWeight()
+{
+    return rend_font_base_decoration_weight;
+}
+
+static lString8 rend_font_base_italic_style;
+
+void LVRendSetBaseItalicStyle( const lString8& style )
+{
+    rend_font_base_italic_style = style;
+}
+
+lString8 LVRendGetBaseItalicStyle()
+{
+    return rend_font_base_italic_style;
+}
+
+static int s_generic_font_family_weights[8] = { 400, 400, 400, 400, 400, 400, 400, 400 };
+static int s_generic_font_family_decoration_weights[8] = { 100, 100, 100, 100, 100, 100, 100, 100 };
+static lString8 s_generic_font_family_italic_styles[8];
+
+void LVRendSetGenericFontWeight(css_font_family_t family, int weight) {
+    int idx = -1;
+    switch (family) {
+        case css_ff_serif:
+        case css_ff_sans_serif:
+        case css_ff_cursive:
+        case css_ff_fantasy:
+        case css_ff_monospace:
+        case css_ff_emoji:
+        case css_ff_fangsong:
+        case css_ff_math:
+            idx = (int)(family - css_ff_serif);
+            break;
+        default:
+            break;
+    }
+    if (idx >= 0 && idx < 8) {
+        if (weight < 1) weight = 1;
+        if (weight > 1000) weight = 1000;
+        s_generic_font_family_weights[idx] = weight;
+    }
+}
+
+int LVRendGetGenericFontWeight(css_font_family_t family) {
+    int idx = -1;
+    switch (family) {
+        case css_ff_serif:
+        case css_ff_sans_serif:
+        case css_ff_cursive:
+        case css_ff_fantasy:
+        case css_ff_monospace:
+        case css_ff_emoji:
+        case css_ff_fangsong:
+        case css_ff_math:
+            idx = (int)(family - css_ff_serif);
+            break;
+        default:
+            break;
+    }
+    if (idx >= 0 && idx < 8)
+        return s_generic_font_family_weights[idx];
+    return rend_font_base_weight;
+}
+
+void LVRendSetGenericDecorationWeight(css_font_family_t family, int weight) {
+    int idx = -1;
+    switch (family) {
+        case css_ff_serif:
+        case css_ff_sans_serif:
+        case css_ff_cursive:
+        case css_ff_fantasy:
+        case css_ff_monospace:
+        case css_ff_emoji:
+        case css_ff_fangsong:
+        case css_ff_math:
+            idx = (int)(family - css_ff_serif);
+            break;
+        default:
+            break;
+    }
+    if (idx >= 0 && idx < 8) {
+        if (weight < 50) weight = 50;
+        if (weight > 500) weight = 500;
+        s_generic_font_family_decoration_weights[idx] = weight;
+    }
+}
+
+int LVRendGetGenericDecorationWeight(css_font_family_t family) {
+    int idx = -1;
+    switch (family) {
+        case css_ff_serif:
+        case css_ff_sans_serif:
+        case css_ff_cursive:
+        case css_ff_fantasy:
+        case css_ff_monospace:
+        case css_ff_emoji:
+        case css_ff_fangsong:
+        case css_ff_math:
+            idx = (int)(family - css_ff_serif);
+            break;
+        default:
+            break;
+    }
+    if (idx >= 0 && idx < 8)
+        return s_generic_font_family_decoration_weights[idx];
+    return 100;
+}
+
+void LVRendSetGenericItalicStyle(css_font_family_t family, const lString8& style) {
+    int idx = -1;
+    switch (family) {
+        case css_ff_serif:
+        case css_ff_sans_serif:
+        case css_ff_cursive:
+        case css_ff_fantasy:
+        case css_ff_monospace:
+        case css_ff_emoji:
+        case css_ff_fangsong:
+        case css_ff_math:
+            idx = (int)(family - css_ff_serif);
+            break;
+        default:
+            break;
+    }
+    if (idx >= 0 && idx < 8) {
+        s_generic_font_family_italic_styles[idx] = style;
+    }
+}
+
+lString8 LVRendGetGenericItalicStyle(css_font_family_t family) {
+    int idx = -1;
+    switch (family) {
+        case css_ff_serif:
+        case css_ff_sans_serif:
+        case css_ff_cursive:
+        case css_ff_fantasy:
+        case css_ff_monospace:
+        case css_ff_emoji:
+        case css_ff_fangsong:
+        case css_ff_math:
+            idx = (int)(family - css_ff_serif);
+            break;
+        default:
+            break;
+    }
+    if (idx >= 0 && idx < 8)
+        return s_generic_font_family_italic_styles[idx];
+    return lString8("Italic"); // not a generic family: the default
+}
+
+int LVRendGetWeightForFont(css_font_family_t family) {
+    if (family >= css_ff_serif && family <= css_ff_fangsong)
+        return LVRendGetGenericFontWeight(family);
+    return rend_font_base_weight;
+}
+
+int LVRendGetDecorationWeightForFont(css_font_family_t family) {
+    if (family >= css_ff_serif && family <= css_ff_fangsong)
+        return LVRendGetGenericDecorationWeight(family);
+    return rend_font_base_decoration_weight;
+}
+
+lString8 LVRendGetItalicStyleForFont(css_font_family_t family) {
+    if (family >= css_ff_serif && family <= css_ff_fangsong)
+        return LVRendGetGenericItalicStyle(family);
+    return rend_font_base_italic_style;
+}
+
+int LVRendGetSlantTypeForFont(css_font_family_t family) {
+    lString8 style = LVRendGetItalicStyleForFont(family);
+    if (style == "Oblique")
+        return LVFONT_SLANT_OBLIQUE;
+    if (style == "synthetic*")
+        return LVFONT_SLANT_ROMAN;
+    return LVFONT_SLANT_ITALIC; // "Italic", and the default when not set
+}
+
 LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId)
 {
     int sz;
@@ -2419,7 +2608,7 @@ LVFontRef getFont(ldomNode * node, css_style_rec_t * style, int documentId)
         fw = (int)style->font_weight;
     else
         fw = 400;
-    fw += (rend_font_base_weight - 400);
+    fw += (LVRendGetWeightForFont(style->font_family) - 400);
     // Although the css standard does not regulate the use of weight over 900,
     //   https://www.w3.org/TR/CSS21/fonts.html#propdef-font-weight
     //   https://developer.mozilla.org/ru/docs/Web/CSS/font-weight
@@ -3295,6 +3484,13 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
         return;
     }
 
+    struct WeightRestorer {
+        LFormattedText * txform;
+        lUInt16 saved;
+        WeightRestorer(LFormattedText * t) : txform(t), saved(t->GetCurrentDecorationWeight()) {}
+        ~WeightRestorer() { txform->SetCurrentDecorationWeight(saved); }
+    } weight_restorer(txform);
+
     bool legacy_rendering = !BLOCK_RENDERING_N(enode, ENHANCED);
     if ( enode->isEffectiveElement() ) {
         lvdom_element_render_method rm = enode->getRendMethod();
@@ -3810,19 +4006,24 @@ void renderFinalBlock( ldomNode * enode, LFormattedText * txform, RenderRectAcce
                 valign_dy -= lengthToPx(enode, vertical_align, base_pct, base_em);
             }
         }
-        switch ( style->text_decoration ) {
-            case css_td_underline:
-            case css_td_blink: // (render it underlined)
+        if (style->text_decoration != css_td_inherit) {
+            if (style->text_decoration & css_td_none)
+                flags &= ~LTEXT_TD_MASK;
+            if (style->text_decoration & css_td_underline)
                 flags |= LTEXT_TD_UNDERLINE;
-                break;
-            case css_td_overline:
+            if (style->text_decoration & css_td_blink) // (render it underlined)
+                flags |= LTEXT_TD_UNDERLINE;
+            if (style->text_decoration & css_td_overline)
                 flags |= LTEXT_TD_OVERLINE;
-                break;
-            case css_td_line_through:
+            if (style->text_decoration & css_td_line_through)
                 flags |= LTEXT_TD_LINE_THROUGH;
-                break;
-            default:
-                break;
+
+            if (flags & LTEXT_TD_MASK) {
+                int dec_weight = LVRendGetDecorationWeightForFont(style->font_family);
+                txform->SetCurrentDecorationWeight(dec_weight);
+            } else {
+                txform->SetCurrentDecorationWeight(100);
+            }
         }
         switch ( style->hyphenate ) {
             case css_hyph_auto:

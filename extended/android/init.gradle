@@ -1,0 +1,30 @@
+// Gradle init script for KOReader's Android build (platform/android/luajit-launcher):
+// builds "KOReader Extended", a separate app that can be installed next to the official
+// KOReader, without changing any KOReader file. Used by build_apk.sh (see there).
+//
+// - its own app ID (the official one is org.koreader.launcher); the file provider's
+//   authority follows it (it is "${applicationId}.provider" in the manifest),
+// - its own name in the app drawer,
+// - KOReader's in-app updater off (it would offer official KOReader updates, which don't
+//   contain Crengine-Extended).
+
+def appId = System.getenv('EXTENDED_APP_ID') ?: 'io.github.absoluteconfusion.koreader'
+def appName = System.getenv('EXTENDED_APP_NAME') ?: 'KOReader Extended'
+
+allprojects { project ->
+    project.plugins.withId('com.android.application') { plugin ->
+        // The Android Gradle plugin's classes aren't visible when this script is compiled:
+        // load the one needed from the plugin itself
+        def BuildConfigField = plugin.class.classLoader.loadClass('com.android.build.api.variant.BuildConfigField')
+        project.androidComponents {
+            onVariants(selector().all()) { variant ->
+                variant.applicationId.set(appId)
+                variant.manifestPlaceholders.put('APP_NAME', appName)
+                variant.buildConfigFields.put('APP_NAME',
+                    BuildConfigField.newInstance('String', '"' + appName + '"', null))
+                variant.buildConfigFields.put('IN_APP_UPDATES',
+                    BuildConfigField.newInstance('boolean', 'false', null))
+            }
+        }
+    }
+}

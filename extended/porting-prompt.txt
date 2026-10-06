@@ -1,0 +1,37 @@
+Port Crengine-Extended to KOReader <version, eg. 2026.10>.
+
+- Repository: <path to the Crengine-Extended clone> (a fork of koreader/crengine; remote
+  "upstream" = https://github.com/koreader/crengine.git). Read extended/README.md first,
+  especially "How this repository is organized" and section 5, "Porting to a newer KOReader",
+  then extended/DESIGN.md: the principles, invariants and hook points of every change. When
+  upstream reworked code a change relies on, re-apply that change's principle, not just its lines.
+- The "extended" branch = the crengine of the current KOReader version + 2 commits:
+  1. "Crengine-Extended for KOReader <version>": the crengine changes (crengine's files only).
+  2. "Crengine-Extended extras for KOReader <version>": the extended/ folder (plugin, tests,
+     patch files, docs) and the front page (.github/README.md).
+- Current base: the crengine commit in the tag table of extended/README.md.
+- Target: the crengine commit that KOReader <version> uses (base/thirdparty/kpvcrlib/crengine
+  in a KOReader source tree at that release, with its submodules).
+
+Method (extended/README.md, section 5):
+1. Never push, and never change existing tags: I publish. Work on the extended branch locally.
+2. git fetch upstream, then git rebase --onto <new base> <old base> on the extended branch.
+   For each conflict, keep both upstream's change and mine. If one needs a judgment call
+   (upstream rewrote what my change relies on), stop and ask me, showing both sides.
+3. Be surgical: font weight, decoration weight and slant type logic must not change beyond
+   what the port needs. Add no new compiler errors or warnings. Keep the two commits
+   separate (crengine's files in the first, extended/ in the second).
+4. Update both commits' messages: "for KOReader <version>", and the first one's "Base:" line.
+5. Put this crengine into a KOReader <version> source tree, build it (./kodev build),
+   install extended/plugin/advancedtypography.koplugin in its plugins/ folder, and run
+   extended/tests/run_tests.sh /path/to/koreader: all suites must pass. If a test fails
+   because KOReader changed how things are done, update the test's method, never what it
+   checks; if what it checks broke, fix the port. Then do README's "After porting" checks.
+6. In the second commit: run extended/make_patch.sh, update the plugin version in
+   _meta.lua (<version>-extended), the tag table and version numbers in extended/README.md
+   and the version line and table in .github/README.md,
+   and add a CHANGELOG.md section (written from the actual diff against the new base, not
+   from memory).
+7. Create the tag koreader-<version>-extended (locally).
+8. Report every conflict and how you resolved it, the test results, and anything you
+   couldn't verify. Don't claim anything works unless you ran it.

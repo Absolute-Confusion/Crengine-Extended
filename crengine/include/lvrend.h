@@ -176,6 +176,10 @@ void getRenderedWidths(ldomNode * node, int &maxWidth, int &minWidth, int direct
 // Set/get global document base font weight.
 void LVRendSetBaseFontWeight(int weight);
 int LVRendGetBaseFontWeight();
+void LVRendSetBaseDecorationWeight(int weight);
+int LVRendGetBaseDecorationWeight();
+void LVRendSetBaseItalicStyle(const lString8& style);
+lString8 LVRendGetBaseItalicStyle();
 
 int measureBorder(ldomNode *enode,int border);
 int lengthToPx( ldomNode *node, css_length_t val, int base_px, int base_em = -1, bool unspecified_as_em=false );
@@ -242,5 +246,19 @@ extern int gRootFontSize;
 #define BLOCK_RENDERING_N(n, f) ((bool)( n->getDocument()->getRenderBlockRenderingFlags() & BLOCK_RENDERING_##f ))
 
 #define DEF_RENDER_BLOCK_RENDERING_FLAGS BLOCK_RENDERING_FULL_FEATURED
+
+// Generic font families getters/setters
+void LVRendSetGenericFontWeight(css_font_family_t family, int weight);
+int LVRendGetGenericFontWeight(css_font_family_t family);
+void LVRendSetGenericItalicStyle(css_font_family_t family, const lString8& style);
+lString8 LVRendGetGenericItalicStyle(css_font_family_t family);
+void LVRendSetGenericDecorationWeight(css_font_family_t family, int weight);
+int LVRendGetGenericDecorationWeight(css_font_family_t family);
+int LVRendGetWeightForFont(css_font_family_t family);
+int LVRendGetDecorationWeightForFont(css_font_family_t family);
+lString8 LVRendGetItalicStyleForFont(css_font_family_t family);
+// Slant type wanted for italic text of this family: LVFONT_SLANT_ITALIC,
+// LVFONT_SLANT_OBLIQUE, or LVFONT_SLANT_ROMAN (synthetic italic)
+int LVRendGetSlantTypeForFont(css_font_family_t family);
 
 #endif

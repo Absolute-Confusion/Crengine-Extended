@@ -3669,12 +3669,23 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                     n = -1;
                 break;
             case cssd_text_decoration:
-            case cssd_text_decoration2:
+            case cssd_text_decoration2: {
                 prop_code = cssd_text_decoration;
                 // (Not default-inherited per specs, but inherited by our implementation)
                 IF_g_SET_n_AND_break(true, css_td_inherit, css_td_none)
-                n = parse_name( decl, css_td_names, -1 );
+                int res = 0;
+                while (true) {
+                    n = parse_name(decl, css_td_names, -1);
+                    if (n == -1) break;
+                    if (n == 0) { res = css_td_inherit; break; }
+                    if (n == 1) { res = css_td_none; break; }
+                    res |= (1 << (n - 1));
+                    skip_spaces(decl);
+                }
+                n = res;
+                if (n == 0) n = -1;
                 break;
+            }
             case cssd_text_transform:
                 IF_g_SET_n_AND_break(true, css_tt_inherit, css_tt_none)
                 n = parse_name( decl, css_tt_names, -1 );
@@ -3784,7 +3795,7 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                 {
                     if ( g >= 0 ) {
                         if ( g == css_g_initial ) {
-                            n = css_ff_sans_serif; // lvfntman's default
+                            n = css_ff_unclassified; // same as the root default
                             if ( doc && ((ldomDocument*)doc)->isDefStyleSet() ) {
                                 strValue = ((ldomDocument*)doc)->getDefaultStyle()->font_name;
                             }
@@ -3893,11 +3904,11 @@ bool LVCssDeclaration::parse( const char * &decl, bool higher_importance, lxmlDo
                         strValue = joinPropertyValueList( list );
                     }
                     // printf("  n=%d imp=%x strValue=%s\n", n, parsed_important, strValue.c_str());
-                    // Default to sans-serif generic font-family (the default
-                    // in lvfntman.cpp, as FreeType can't know the family of
-                    // a font)
+                    // No generic family named (only specific font names):
+                    // this text belongs to no category, so it is unclassified
+                    // (and does not inherit the parent's category)
                     if (n == -1)
-                        n = css_ff_sans_serif;
+                        n = css_ff_unclassified;
                 }
                 break;
             case cssd_font_style:

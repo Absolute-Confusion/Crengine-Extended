@@ -240,6 +240,7 @@ enum kerning_mode_t {
 #define LFNT_DRAW_OVERLINE               0x2000 /// overlined text
 #define LFNT_DRAW_LINE_THROUGH           0x4000 /// striked through text
 #define LFNT_DRAW_DECORATION_MASK        0x7000
+#define LFNT_DRAW_DECORATION_WEIGHT_MASK 0x01FF0000
 
 
 // CSS font-variant and font-feature-settings properties:
@@ -534,6 +535,9 @@ public:
     /// synthesized (embolden/lighten) weight applied on top of the loaded face, 0 if none
     virtual int getSynthWeight() const { return 0; }
 
+    /// slant of the loaded face (LVFONT_SLANT_*), telling apart its italic and oblique faces
+    virtual int getFaceSlant() const { return 0; }
+
     /// sets current kerning mode
     virtual void setKerningMode( kerning_mode_t /*mode*/ ) { }
     /// returns current kerning mode
@@ -595,6 +599,13 @@ enum font_antialiasing_t
 #define LVFONT_TAG_ITAL  LVFONT_TAG('i','t','a','l')  // italic axis
 #define LVFONT_TAG_SLNT  LVFONT_TAG('s','l','n','t')  // slant axis
 #define LVFONT_TAG_WDTH  LVFONT_TAG('w','d','t','h')  // width axis
+
+// Font slant values, as fontconfig's FC_SLANT (what fc-query reports).
+// Used both for a font face's own slant and for the slant type wanted
+// for italic text (LVFONT_SLANT_ROMAN then meaning synthetic italic).
+#define LVFONT_SLANT_ROMAN    0
+#define LVFONT_SLANT_ITALIC   100
+#define LVFONT_SLANT_OBLIQUE  110
 
 /// Active design-space values for the five registered variable-font axes.
 /// Axes not explicitly set carry no value and do not affect the cache key.
@@ -738,7 +749,8 @@ public:
     /// returns fallback font for specified size
     virtual LVFontRef GetFallbackFont(int /*size*/) { return LVFontRef(); }
     /// returns fallback font for specified size, weight and italic
-    virtual LVFontRef GetFallbackFont(int size, int weight=400, bool italic=false, lString8 forFaceName=lString8::empty_str ) { return LVFontRef(); }
+    /// (family: font family of the text, which decides the slant type when italic)
+    virtual LVFontRef GetFallbackFont(int size, int weight=400, bool italic=false, lString8 forFaceName=lString8::empty_str, css_font_family_t family=css_ff_sans_serif ) { return LVFontRef(); }
     /// registers font by name
     virtual bool RegisterFont( lString8 name ) = 0;
     /// registers font by name and face

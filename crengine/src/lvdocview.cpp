@@ -93,7 +93,7 @@ const char
 static const char * DEFAULT_FONT_NAME = "Arial, DejaVu Sans"; //Times New Roman";
 static const char * DEFAULT_STATUS_FONT_NAME =
 		"Arial Narrow, Arial, DejaVu Sans"; //Times New Roman";
-static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_sans_serif;
+static css_font_family_t DEFAULT_FONT_FAMILY = css_ff_unclassified;
 //    css_ff_serif,
 //    css_ff_sans_serif,
 //    css_ff_cursive,
@@ -3056,7 +3056,7 @@ void LVDocView::setRenderProps(int dx, int dy) {
 
 	lString8 fontName = lString8(DEFAULT_FONT_NAME);
 	m_font_size = scaleFontSizeForDPI(m_requested_font_size);
-	m_font = fontMan->GetFont(m_font_size, LVRendGetBaseFontWeight(),
+	m_font = fontMan->GetFont(m_font_size, 400,
 			false, DEFAULT_FONT_FAMILY, m_defaultFontFace);
 	//m_font = LVCreateFontTransform( m_font, LVFONT_TRANSFORM_EMBOLDEN );
 	m_infoFont = fontMan->GetFont(m_status_font_size, 400, false,
@@ -6672,9 +6672,6 @@ void LVDocView::propsUpdateDefaults(CRPropRef props) {
 #endif
 	static int bool_options_def_true[] = { 1, 0 };
 	static int bool_options_def_false[] = { 0, 1 };
-	static int int_option_weight[] = { 100, 200, 300, 400, 425, 450, 475, 500, 525, 550, 600, 650, 700, 800, 900, 950 };
-
-	props->limitValueList(PROP_FONT_BASE_WEIGHT, int_option_weight, sizeof(int_option_weight) / sizeof(int), 3);
 #ifndef ANDROID
 	props->limitValueList(PROP_EMBEDDED_STYLES, bool_options_def_true, 2);
 	props->limitValueList(PROP_EMBEDDED_FONTS, bool_options_def_true, 2);
@@ -6902,6 +6899,162 @@ CRPropRef LVDocView::propsApply(CRPropRef props) {
             if ( LVRendGetBaseFontWeight() != v ) {
                 LVRendSetBaseFontWeight(v);
                 REQUEST_RENDER("propsApply - font weight")
+            }
+        } else if (name == PROP_GENERIC_SERIF_FONT_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_SERIF_FONT_WEIGHT, 400);
+            if (LVRendGetGenericFontWeight(css_ff_serif) != v) {
+                LVRendSetGenericFontWeight(css_ff_serif, v);
+                REQUEST_RENDER("propsApply - generic serif font weight")
+            }
+        } else if (name == PROP_GENERIC_SANS_SERIF_FONT_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_SANS_SERIF_FONT_WEIGHT, 400);
+            if (LVRendGetGenericFontWeight(css_ff_sans_serif) != v) {
+                LVRendSetGenericFontWeight(css_ff_sans_serif, v);
+                REQUEST_RENDER("propsApply - generic sans-serif font weight")
+            }
+        } else if (name == PROP_GENERIC_CURSIVE_FONT_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_CURSIVE_FONT_WEIGHT, 400);
+            if (LVRendGetGenericFontWeight(css_ff_cursive) != v) {
+                LVRendSetGenericFontWeight(css_ff_cursive, v);
+                REQUEST_RENDER("propsApply - generic cursive font weight")
+            }
+        } else if (name == PROP_GENERIC_FANTASY_FONT_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_FANTASY_FONT_WEIGHT, 400);
+            if (LVRendGetGenericFontWeight(css_ff_fantasy) != v) {
+                LVRendSetGenericFontWeight(css_ff_fantasy, v);
+                REQUEST_RENDER("propsApply - generic fantasy font weight")
+            }
+        } else if (name == PROP_GENERIC_MONOSPACE_FONT_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_MONOSPACE_FONT_WEIGHT, 400);
+            if (LVRendGetGenericFontWeight(css_ff_monospace) != v) {
+                LVRendSetGenericFontWeight(css_ff_monospace, v);
+                REQUEST_RENDER("propsApply - generic monospace font weight")
+            }
+        } else if (name == PROP_GENERIC_EMOJI_FONT_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_EMOJI_FONT_WEIGHT, 400);
+            if (LVRendGetGenericFontWeight(css_ff_emoji) != v) {
+                LVRendSetGenericFontWeight(css_ff_emoji, v);
+                REQUEST_RENDER("propsApply - generic emoji font weight")
+            }
+        } else if (name == PROP_GENERIC_FANGSONG_FONT_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_FANGSONG_FONT_WEIGHT, 400);
+            if (LVRendGetGenericFontWeight(css_ff_fangsong) != v) {
+                LVRendSetGenericFontWeight(css_ff_fangsong, v);
+                REQUEST_RENDER("propsApply - generic fangsong font weight")
+            }
+        } else if (name == PROP_GENERIC_MATH_FONT_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_MATH_FONT_WEIGHT, 400);
+            if (LVRendGetGenericFontWeight(css_ff_math) != v) {
+                LVRendSetGenericFontWeight(css_ff_math, v);
+                REQUEST_RENDER("propsApply - generic math font weight")
+            }
+        } else if (name == PROP_FONT_DECORATION_WEIGHT) {
+            int v = props->getIntDef(PROP_FONT_DECORATION_WEIGHT, 100);
+            if ( LVRendGetBaseDecorationWeight() != v ) {
+                LVRendSetBaseDecorationWeight(v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_SERIF_FONT_DECORATION_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_SERIF_FONT_DECORATION_WEIGHT, 100);
+            if (LVRendGetGenericDecorationWeight(css_ff_serif) != v) {
+                LVRendSetGenericDecorationWeight(css_ff_serif, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_SANS_SERIF_FONT_DECORATION_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_SANS_SERIF_FONT_DECORATION_WEIGHT, 100);
+            if (LVRendGetGenericDecorationWeight(css_ff_sans_serif) != v) {
+                LVRendSetGenericDecorationWeight(css_ff_sans_serif, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_CURSIVE_FONT_DECORATION_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_CURSIVE_FONT_DECORATION_WEIGHT, 100);
+            if (LVRendGetGenericDecorationWeight(css_ff_cursive) != v) {
+                LVRendSetGenericDecorationWeight(css_ff_cursive, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_FANTASY_FONT_DECORATION_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_FANTASY_FONT_DECORATION_WEIGHT, 100);
+            if (LVRendGetGenericDecorationWeight(css_ff_fantasy) != v) {
+                LVRendSetGenericDecorationWeight(css_ff_fantasy, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_MONOSPACE_FONT_DECORATION_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_MONOSPACE_FONT_DECORATION_WEIGHT, 100);
+            if (LVRendGetGenericDecorationWeight(css_ff_monospace) != v) {
+                LVRendSetGenericDecorationWeight(css_ff_monospace, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_EMOJI_FONT_DECORATION_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_EMOJI_FONT_DECORATION_WEIGHT, 100);
+            if (LVRendGetGenericDecorationWeight(css_ff_emoji) != v) {
+                LVRendSetGenericDecorationWeight(css_ff_emoji, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_FANGSONG_FONT_DECORATION_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_FANGSONG_FONT_DECORATION_WEIGHT, 100);
+            if (LVRendGetGenericDecorationWeight(css_ff_fangsong) != v) {
+                LVRendSetGenericDecorationWeight(css_ff_fangsong, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_MATH_FONT_DECORATION_WEIGHT) {
+            int v = props->getIntDef(PROP_GENERIC_MATH_FONT_DECORATION_WEIGHT, 100);
+            if (LVRendGetGenericDecorationWeight(css_ff_math) != v) {
+                LVRendSetGenericDecorationWeight(css_ff_math, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_FONT_ITALIC_STYLE) {
+            lString8 v = UnicodeToUtf8(props->getStringDef(PROP_FONT_ITALIC_STYLE, "Italic"));
+            if (LVRendGetBaseItalicStyle() != v) {
+                LVRendSetBaseItalicStyle(v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_SERIF_FONT_ITALIC_STYLE) {
+            lString8 v = UnicodeToUtf8(props->getStringDef(PROP_GENERIC_SERIF_FONT_ITALIC_STYLE, "Italic"));
+            if (LVRendGetGenericItalicStyle(css_ff_serif) != v) {
+                LVRendSetGenericItalicStyle(css_ff_serif, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_SANS_SERIF_FONT_ITALIC_STYLE) {
+            lString8 v = UnicodeToUtf8(props->getStringDef(PROP_GENERIC_SANS_SERIF_FONT_ITALIC_STYLE, "Italic"));
+            if (LVRendGetGenericItalicStyle(css_ff_sans_serif) != v) {
+                LVRendSetGenericItalicStyle(css_ff_sans_serif, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_CURSIVE_FONT_ITALIC_STYLE) {
+            lString8 v = UnicodeToUtf8(props->getStringDef(PROP_GENERIC_CURSIVE_FONT_ITALIC_STYLE, "Italic"));
+            if (LVRendGetGenericItalicStyle(css_ff_cursive) != v) {
+                LVRendSetGenericItalicStyle(css_ff_cursive, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_FANTASY_FONT_ITALIC_STYLE) {
+            lString8 v = UnicodeToUtf8(props->getStringDef(PROP_GENERIC_FANTASY_FONT_ITALIC_STYLE, "Italic"));
+            if (LVRendGetGenericItalicStyle(css_ff_fantasy) != v) {
+                LVRendSetGenericItalicStyle(css_ff_fantasy, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_MONOSPACE_FONT_ITALIC_STYLE) {
+            lString8 v = UnicodeToUtf8(props->getStringDef(PROP_GENERIC_MONOSPACE_FONT_ITALIC_STYLE, "Italic"));
+            if (LVRendGetGenericItalicStyle(css_ff_monospace) != v) {
+                LVRendSetGenericItalicStyle(css_ff_monospace, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_EMOJI_FONT_ITALIC_STYLE) {
+            lString8 v = UnicodeToUtf8(props->getStringDef(PROP_GENERIC_EMOJI_FONT_ITALIC_STYLE, "Italic"));
+            if (LVRendGetGenericItalicStyle(css_ff_emoji) != v) {
+                LVRendSetGenericItalicStyle(css_ff_emoji, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_FANGSONG_FONT_ITALIC_STYLE) {
+            lString8 v = UnicodeToUtf8(props->getStringDef(PROP_GENERIC_FANGSONG_FONT_ITALIC_STYLE, "Italic"));
+            if (LVRendGetGenericItalicStyle(css_ff_fangsong) != v) {
+                LVRendSetGenericItalicStyle(css_ff_fangsong, v);
+                REQUEST_RENDER("propsApply")
+            }
+        } else if (name == PROP_GENERIC_MATH_FONT_ITALIC_STYLE) {
+            lString8 v = UnicodeToUtf8(props->getStringDef(PROP_GENERIC_MATH_FONT_ITALIC_STYLE, "Italic"));
+            if (LVRendGetGenericItalicStyle(css_ff_math) != v) {
+                LVRendSetGenericItalicStyle(css_ff_math, v);
+                REQUEST_RENDER("propsApply")
             }
         } else if (name == PROP_TXT_OPTION_PREFORMATTED) {
             bool preformatted = props->getBoolDef(PROP_TXT_OPTION_PREFORMATTED,

@@ -137,13 +137,12 @@ enum css_vertical_align_t {
 
 /// text-decoration property values
 enum css_text_decoration_t {
-    // TODO: support multiple flags
     css_td_inherit = 0,
     css_td_none = 1,
     css_td_underline = 2,
-    css_td_overline = 3,
-    css_td_line_through = 4,
-    css_td_blink = 5
+    css_td_overline = 4,
+    css_td_line_through = 8,
+    css_td_blink = 16
 };
 
 /// text-transform property values
@@ -195,7 +194,11 @@ enum css_font_family_t {
     css_ff_monospace,
     css_ff_math,
     css_ff_emoji,
-    css_ff_fangsong
+    css_ff_fangsong,
+    // Text with no generic family: the root default, and any font-family
+    // naming only specific fonts (or "initial"). Not parsable from CSS.
+    // Must stay last so the values above are unchanged.
+    css_ff_unclassified
 };
 
 /// page split property values

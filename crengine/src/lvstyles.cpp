@@ -38,6 +38,7 @@ lUInt32 calcHash(font_ref_t & f)
     v = v * 31 + (lUInt32)f->getBaseline();
     v = v * 31 + f->getVariationHash();
     v = v * 31 + (lUInt32)f->getSynthWeight();
+    v = v * 31 + (lUInt32)f->getFaceSlant();
     f->_hash = v;
     return v;
 }

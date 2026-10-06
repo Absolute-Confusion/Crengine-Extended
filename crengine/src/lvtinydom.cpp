@@ -408,6 +408,15 @@ lUInt32 calcGlobalSettingsHash(int documentId, bool already_rendered)
     // when hinting mode is changed to reformat paragraphs.
     // hash = hash * 31 + (int)fontMan->GetHintingMode();
     hash = hash * 31 + LVRendGetBaseFontWeight();
+    for (int i = 0; i < 8; i++) {
+        hash = hash * 31 + LVRendGetGenericFontWeight((css_font_family_t)(css_ff_serif + i));
+        hash = hash * 31 + LVRendGetGenericDecorationWeight((css_font_family_t)(css_ff_serif + i));
+        hash = hash * 31 + LVRendGetGenericItalicStyle((css_font_family_t)(css_ff_serif + i)).getHash();
+    }
+    hash = hash * 31 + LVRendGetBaseItalicStyle().getHash();
+    // Bump when font family classification changes, so cached styles get recomputed
+    // (1: css_ff_unclassified for untagged text and font-family without a generic family)
+    hash = hash * 31 + 1;
     hash = hash * 31 + gRenderDPI;
     // If not yet rendered (initial loading with XML parsing), we can
     // ignore some global flags that have not yet produced any effect,
@@ -5145,7 +5154,9 @@ bool ldomDocument::setRenderProps( int width, int dy, bool /*showCover*/, int /*
     // s->background_color = css_length_t(css_val_unspecified, props->getColorDef(PROP_BACKGROUND_COLOR, 0xFFFFFF));
     s->list_style_type = css_lst_disc;
     s->list_style_position = css_lsp_outside;
-    s->font_family = def_font->getFontFamily();
+    // Untagged text is unclassified: don't derive it from def_font, whose
+    // instance may be shared and report another family
+    s->font_family = css_ff_unclassified;
     s->font_size = css_length_t(css_val_screen_px, def_font->getSize()); // we use screen_px, as we got the real font size from FontManager
     s->font_name = def_font->getTypeFace();
     s->font_weight = 400;
@@ -18665,6 +18676,8 @@ public:
         CRLog::trace("ldomDocCacheImpl(%s maxSize=%d)", LCSTR(_cacheDir), (int)maxSize);
     }
 
+    const lString32 & getDir() const { return _cacheDir; }
+
     bool writeIndex()
     {
         lString32 filename = _cacheDir + "cr3cache.inx";
@@ -19064,6 +19077,11 @@ bool ldomDocCache::clear()
 bool ldomDocCache::enabled()
 {
     return _cacheInstance!=NULL;
+}
+
+lString32 ldomDocCache::getCacheDir()
+{
+    return _cacheInstance ? _cacheInstance->getDir() : lString32::empty_str;
 }
 
 //void calcStyleHash( ldomNode * node, lUInt32 & value )
